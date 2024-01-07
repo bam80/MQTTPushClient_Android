@@ -11,6 +11,12 @@
   </style>
 
   <script>
+    function startFunction() {
+      alert("Hi there!");
+      onMqttInit();
+      onMqttMessage({"text": 20});
+    }
+
    var THERMO_COLOR = "#000000";
    var THERMO_FILL_COLOR = "#FF0000";
    var fillPC = 0;
@@ -57,9 +63,9 @@
      canv.height = '' +  Math.round(a * .9 * window.devicePixelRatio);
 
      /* increase font size when component is displayed in detail view */
-     if (MQTT.view.isDialog()) {
+     //if (MQTT.view.isDialog()) {
        thermo_label.style.fontSize = "x-large";
-     }
+     //}
 
      draw(fillPC);
    }
@@ -125,7 +131,7 @@
   </script>
  </head>
 
- <body>
+ <body onload="startFunction()">
   <div id="visible_area">
    <canvas id="thermometer" width="25" height="100"></canvas>
    <div id="thermo_label"></div>
