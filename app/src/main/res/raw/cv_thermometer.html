@@ -1,140 +1,199 @@
+
 <!DOCTYPE html>
 <html>
- <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=250,height=250,initial-scale=1,user-scalable=no">
 
-  <style>
-   body {margin: 0; padding: 0;}
-   #thermometer {float: left; visibility: hidden;}
-   #thermo_label {display: table-cell; vertical-align: middle;}
-  </style>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=250,height=250,initial-scale=1,user-scalable=no">
 
-  <script>
-    function startFunction() {
-      alert("Hi there!");
-      onMqttInit();
-      onMqttMessage({"text": 20});
-    }
+<style>
+body {
+margin: 0;
+padding: 0;
+}
 
-   var THERMO_COLOR = "#000000";
-   var THERMO_FILL_COLOR = "#FF0000";
-   var fillPC = 0;
+#thermometer {
+float: left;
+visibility: hidden;
+}
 
-   function onMqttInit(account, view) {
-     var canv = document.getElementById('thermometer');
-     canv.style.visibility = "visible";
-     window.addEventListener('resize', onMqttResize);
-     onMqttResize();
-   }
+#thermo_label {
+display: table-cell;
+vertical-align: middle;
+}
 
-   function onMqttMessage(msg) {
-     var temp = Number(msg.text);
-     var thermo_label = document.getElementById('thermo_label');
-     thermo_label.innerHTML = temp + '°C';
-     if (temp < -30) {
-       temp = -30;
-     } else if (temp > 50) {
-       temp = 50;
-     }
-     temp += 30;
-     /* set new value */
-     fillPC = temp / 80
-     onMqttResize();
-   }
+#thermo_label2 {
+position: fixed;
+top: 0px;
+left: 0px;
+}
 
-   function onMqttResize() {
-     /* the size of the component must be adjusted to the size of the viewport */
-     document.getElementById('visible_area').style.width = window.innerWidth + "px";
-     document.getElementById('visible_area').style.height = window.innerHeight + "px";
+#thermo_label3 {
+position: fixed;
+bottom: 0px !important;
+left: 0px;
+}
+</style>
 
-     var canv = document.getElementById('thermometer');
-     var thermo_label = document.getElementById('thermo_label');
-     var a = Math.min(window.innerWidth, window.innerHeight);
+<script>
+function startFunction() {
+alert("Hi there!");
+onMqttInit();
+onMqttMessage({ "text": 20 });
+}
 
-     canv.style.marginLeft = Math.round(a * .05) + "px";
-     canv.style.marginTop = Math.round(a * .05) + "px";
-     canv.style.width = Math.round(a * .9 * .4) + "px";
-     canv.style.height = Math.round(a * .9) + "px";
-     thermo_label.style.height = window.innerHeight + "px";
+var THERMO_COLOR = "#000000";
+var THERMO_FILL_COLOR = "#FF0000";
+var fillPC = 0;
 
-     /* multiply canvas dimensions with window.devicePixelRatio for sharper images */
-     canv.width = '' + Math.round(a * .9 * .4 * window.devicePixelRatio);
-     canv.height = '' +  Math.round(a * .9 * window.devicePixelRatio);
+var g_settings = new Object();
 
-     /* increase font size when component is displayed in detail view */
-     //if (MQTT.view.isDialog()) {
-       thermo_label.style.fontSize = "x-large";
-     //}
+function onMqttInit(account, view) {
+var canv = document.getElementById('thermometer');
+canv.style.visibility = "visible";
+window.addEventListener('resize', onMqttResize);
 
-     draw(fillPC);
-   }
+/* get parameters and overide default settings */
+// var p = parseParameters(view.getParameters());
 
-   function draw(f) {
-     var a = Math.round(Math.min(window.innerWidth, window.innerHeight) * .9);
-     /* calculate scaling factor and multiply with devicePixelRatio for sharper images */
-     var s = a / 100 * window.devicePixelRatio;
+// g_settings['y_min'] = 'ymin' in p ? Number(p['ymin']) : -20;
+// g_settings['y_max'] = 'ymax' in p ? Number(p['ymax']) : 60;
+g_settings['y_min'] = -20;
+g_settings['y_max'] = 60;
 
-     if (isNaN(f) || f < 0) {
-       f = 0;
-     } else if (f > 1) {
-       f = 1;
-     }
+onMqttResize();
+}
 
-     var canv = document.getElementById('thermometer');
-     var ctx = canv.getContext('2d');
-     ctx.scale(s, s);
+function onMqttMessage(msg) {
+var temp = Number(msg.text);
+var Y_MIN = g_settings['y_min'];
+var Y_MAX = g_settings['y_max'];
 
-     ctx.clearRect(0, 0, 25, 100);
+var thermo_label = document.getElementById('thermo_label');
+thermo_label.innerHTML = temp + '°C';
 
-     ctx.beginPath();
-     ctx.lineWidth = 2;
-     ctx.moveTo(5, 20);
-     ctx.lineTo(5, 80);
-     ctx.arc(15, 80, 10, Math.PI, 0, true);
-     ctx.lineTo(25 , 20);
-     ctx.arc(15, 20, 10, 0, Math.PI, true);
-     ctx.strokeStyle = THERMO_COLOR;
-     ctx.closePath();
-     ctx.stroke();
+var thermo_label2 = document.getElementById('thermo_label2');
+thermo_label2.innerHTML = Y_MAX + '°C';
+thermo_label2.style.fontSize = "xx-small";
 
-     var o = 6;
-     ctx.beginPath();
-     ctx.lineWidth = 1;
-     ctx.moveTo(5 + o, 20);
-     ctx.lineTo(5 + o, 80);
-     ctx.arc(15, 80, 10 - o, Math.PI, 0, true);
-     ctx.lineTo(25 - o, 20);
-     ctx.arc(15, 20, 10 - o, 0, Math.PI, true);
-     ctx.fillStyle = THERMO_COLOR;
-     ctx.closePath();
-     ctx.fill();
+var thermo_label3 = document.getElementById('thermo_label3');
+thermo_label3.innerHTML = Y_MIN + '°C';
+thermo_label3.style.fontSize = "xx-small";
 
-     var x = 60 - 60 * f;
-     if (f > 0) {
-       ctx.beginPath();
-       ctx.lineWidth = 1;
-       ctx.moveTo(5 + o, 20 + x);
-       ctx.lineTo(5 + o, 80);
-       ctx.arc(15, 80, 10 - o, Math.PI, 0, true);
-       ctx.lineTo(25 - o, 20 + x);
-       if (f < 1) {
-          ctx.lineTo(5 + o, 20 + x);
-       } else {
-         ctx.arc(15, 20 + x, 10 - o, 0, Math.PI, true);
-       }
-       ctx.closePath();
-       ctx.fillStyle = THERMO_FILL_COLOR;
-       ctx.fill();
-     }
-   }
-  </script>
- </head>
+if (temp < Y_MIN) {
+temp = Y_MIN;
+} else if (temp > Y_MAX) {
+temp = Y_MAX;
+}
+temp += -Y_MIN;
+/* set new value */
+fillPC = temp / (Y_MAX - Y_MIN);
 
- <body onload="startFunction()">
-  <div id="visible_area">
-   <canvas id="thermometer" width="25" height="100"></canvas>
-   <div id="thermo_label"></div>
-  </div>
- </body>
+onMqttResize();
+}
+
+function onMqttResize() {
+/* the size of the component must be adjusted to the size of the viewport */
+document.getElementById('visible_area').style.width = window.innerWidth + "px";
+document.getElementById('visible_area').style.height = window.innerHeight + "px";
+
+var canv = document.getElementById('thermometer');
+var thermo_label = document.getElementById('thermo_label');
+var thermo_label2 = document.getElementById('thermo_label2');
+var thermo_label3 = document.getElementById('thermo_label3');
+var a = Math.min(window.innerWidth, window.innerHeight);
+
+canv.style.marginLeft = Math.round(a * .05) + "px";
+canv.style.marginTop = Math.round(a * .05) + "px";
+canv.style.width = Math.round(a * .9 * .4) + "px";
+canv.style.height = Math.round(a * .9) + "px";
+thermo_label.style.height = window.innerHeight + "px";
+thermo_label2.style.height = window.innerHeight + "px";
+thermo_label3.style.height = window.innerHeight + "px";
+
+/* multiply canvas dimensions with window.devicePixelRatio for sharper images */
+canv.width = '' + Math.round(a * .9 * .4 * window.devicePixelRatio);
+canv.height = '' + Math.round(a * .9 * window.devicePixelRatio);
+
+/* increase font size when component is displayed in detail view */
+//if (MQTT.view.isDialog()) {
+thermo_label.style.fontSize = "x-large";
+thermo_label2.style.fontSize = "xx-small";
+thermo_label3.style.fontSize = "xx-small";
+//}
+
+draw(fillPC);
+}
+
+function draw(f) {
+var a = Math.round(Math.min(window.innerWidth, window.innerHeight) * .9);
+/* calculate scaling factor and multiply with devicePixelRatio for sharper images */
+var s = a / 100 * window.devicePixelRatio;
+
+if (isNaN(f) || f < 0) {
+f = 0;
+} else if (f > 1) {
+f = 1;
+}
+
+var canv = document.getElementById('thermometer');
+var ctx = canv.getContext('2d');
+ctx.scale(s, s);
+
+ctx.clearRect(0, 0, 25, 100);
+
+ctx.beginPath();
+ctx.lineWidth = 2;
+ctx.moveTo(5, 20);
+ctx.lineTo(5, 80);
+ctx.arc(15, 80, 10, Math.PI, 0, true);
+ctx.lineTo(25, 20);
+ctx.arc(15, 20, 10, 0, Math.PI, true);
+ctx.strokeStyle = THERMO_COLOR;
+ctx.closePath();
+ctx.stroke();
+
+var o = 6;
+ctx.beginPath();
+ctx.lineWidth = 1;
+ctx.moveTo(5 + o, 20);
+ctx.lineTo(5 + o, 80);
+ctx.arc(15, 80, 10 - o, Math.PI, 0, true);
+ctx.lineTo(25 - o, 20);
+ctx.arc(15, 20, 10 - o, 0, Math.PI, true);
+ctx.fillStyle = THERMO_COLOR;
+ctx.closePath();
+ctx.fill();
+
+var x = 60 - 60 * f;
+if (f > 0) {
+ctx.beginPath();
+ctx.lineWidth = 1;
+ctx.moveTo(5 + o, 20 + x);
+ctx.lineTo(5 + o, 80);
+ctx.arc(15, 80, 10 - o, Math.PI, 0, true);
+ctx.lineTo(25 - o, 20 + x);
+if (f < 1) {
+ctx.lineTo(5 + o, 20 + x);
+} else {
+ctx.arc(15, 20 + x, 10 - o, 0, Math.PI, true);
+}
+ctx.closePath();
+ctx.fillStyle = THERMO_FILL_COLOR;
+ctx.fill();
+}
+}
+</script>
+</head>
+
+<body onload="startFunction()">
+<div id="visible_area">
+<canvas id="thermometer" width="25" height="100"></canvas>
+
+<div id="thermo_label2"></div>
+<div id="thermo_label"></div>
+<div id="thermo_label3"></div>
+</div>
+</body>
+
 </html>
