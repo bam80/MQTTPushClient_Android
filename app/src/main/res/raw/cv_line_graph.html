@@ -10,6 +10,15 @@
   </style>
 
   <script>
+    function startFunction() {
+      if (typeof MQTT !== 'undefined')
+        return;
+
+      alert("Hi there!");
+      onMqttInit();
+      onMqttMessage({ "text": 20 });
+    }
+
     const BORDER_PX = 3;
     var g_settings = new Object();
 
@@ -19,7 +28,7 @@
      window.addEventListener('resize', onMqttResize);
 
      /* get parameters and overide default settings */
-     var p = parseParameters(view.getParameters());
+     const p = view ? parseParameters(view.getParameters()) : {};
 
      g_settings['y_label'] = 'ylabel' in p ? p['ylabel'] : "°C";
      g_settings['y_min'] = 'ymin' in p ? Number(p['ymin']) : -20;
@@ -63,7 +72,7 @@
      canv.height = '' +  Math.round(a2 * window.devicePixelRatio);
 
      /* draw line graph with historical data */
-     draw(MQTT.view.getHistoricalData());
+     draw(typeof MQTT !== 'undefined' ? MQTT.view.getHistoricalData() : []);
     }
 
    /* get Y value from historical data record. Must be numeric */
@@ -394,7 +403,7 @@
   </script>
  </head>
 
- <body>
+ <body onload="startFunction()">
   <div id="visible_area">
    <canvas id="canvas" width="100" height="100"></canvas>
   </div>
