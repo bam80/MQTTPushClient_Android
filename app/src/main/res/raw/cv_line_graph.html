@@ -61,7 +61,7 @@
 
    function onMqttMessage(msg) {
      onMqttResize();
-     thermo_label.innerHTML = JSON.parse(msg.text).ANALOG.Temperature + '°C';
+     thermo_label.innerHTML = getYValue(msg) + g_settings['y_label'];
    }
 
    function onMqttResize() {
