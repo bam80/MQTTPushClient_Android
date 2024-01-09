@@ -93,7 +93,7 @@
 
    /* get Y value from historical data record. Must be numeric */
    function getYValue(msg) {
-     return Number(msg.text);
+     return Number(JSON.parse(msg.text).ANALOG.Temperature);
    }
 
    /* get Y2 value from historical data record. Must be numeric */
