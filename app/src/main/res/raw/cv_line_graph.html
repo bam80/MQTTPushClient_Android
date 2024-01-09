@@ -32,10 +32,10 @@
 
      /* 2nd Y axis. Must be set to visible. */
      g_settings['y2_visible'] = 'y2visible' in p ? p['y2visible'] : "false";
-     g_settings['y2_label'] = 'y2label' in p ? p['y2label'] : "%";
-     g_settings['y2_min'] = 'y2min' in p ? Number(p['y2min']) : 0;
-     g_settings['y2_max'] = 'y2max' in p ? Number(p['y2max']) : 100;
-     g_settings['y2_tick_interval'] = 'y2interval' in p ? Number(p['y2interval']) : 20;
+     g_settings['y2_label'] = 'ylabel' in p ? p['ylabel'] : "%";
+     g_settings['y2_min'] = 'ymin' in p ? Number(p['ymin']) : 0;
+     g_settings['y2_max'] = 'ymax' in p ? Number(p['ymax']) : 100;
+     g_settings['y2_tick_interval'] = 'yinterval' in p ? Number(p['yinterval']) : 20;
 
      onMqttResize();
    }
@@ -81,7 +81,7 @@
 
    /* get Y2 value from historical data record. Must be numeric */
    function getY2Value(msg) {
-     return 0;
+     return 17;
    }
 
    function draw(data) {
